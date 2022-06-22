@@ -1,0 +1,128 @@
+# Camera
+import cv2
+import numpy as np
+from imutils.video import VideoStream
+from tensorflow.keras.models import load_model
+import os
+from tensorflow.keras.utils import load_img, img_to_array
+from google.colab.patches import cv2_imshow
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
+model = load_model('/content/drive/MyDrive/Wood.h5')
+# Create a VideoCapture object and read from input file
+cap = cv2.VideoCapture('/content/drive/MyDrive/wood.mp4')
+
+try:
+    # creating a folder named data
+    if not os.path.exists('data'):
+        os.makedirs('data')
+
+# if not created then raise error
+except OSError:
+    print ('Error: Creating directory of data')
+
+
+# frame
+currentframe = 0
+
+
+# Check if camera opened successfully
+if (cap.isOpened()== False):
+    print("Error opening video file")
+
+# Read until video is completed
+while(cap.isOpened()):
+
+# Capture frame-by-frame
+    ret, frame = cap.read()
+    if ret == True:
+
+
+	# Display the resulting frame
+        
+
+        # if video is still left continue creating images
+        name = './data/frame' + str(currentframe) + '.jpg'
+        print ('Creating...' + name)
+
+        # writing the extracted images
+        cv2.imwrite(name, frame)
+        filename = name
+
+        predict = ['Anh_dao','Bach_dang_nk','Bach_xanh','Beech','Bo_de','Cam_lai','Cao_su','Cho_chi','Dang_huong','Lat_hoa','Lim','Mit_mat','Que','Soi','Xoan_ta']
+        predict = np.array(predict)
+        img = load_img(filename,target_size=(120,120))
+
+        img = img_to_array(img)
+        img = img.reshape(1,120,120,3)
+        img = img.astype('float32')
+        img = img/255
+
+        result = np.argmax(model.predict(img),axis=-1)
+        predict[result]
+
+        if(result==0):
+            a = "'Anh_dao"
+        if(result==1):
+            a = "Bach_dang_nk"
+        if(result==2):
+            a = "Bach_xanh"
+        if(result==3):
+            a = "Beech"
+        if(result==4):
+            a = "Bo_de"
+        if(result==5):
+            a = "Cam_lai"
+        if(result==6):
+            a = "Cao_su"
+        if(result==7):
+            a = "Cho_chi"
+        if(result==8):
+            a = "Dang_huong"
+        if(result==9):
+            a = "Lat_hoa"
+        if(result==10):
+            a = "Lim"
+        if(result==11):
+            a = "Mit_mat"
+        if(result==12):
+            a = "Que"
+        if(result==13):
+            a = "Soi"
+        if(result==14):
+            a = "Xoan_ta"
+        
+
+        # org
+        org = (20, 185)
+        
+        # fontScale
+        fontScale = 2
+        
+        # Blue color in BGR
+        color = (255, 0, 0)
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        # Line thickness of 2 px
+        thickness = 2
+        cv2.putText(frame,a,org,font,fontScale,color,1)
+        cv2_imshow(frame)
+        print(a)
+        # increasing counter so that it will
+        # show how many frames are created
+        currentframe += 1
+
+	# Press Q on keyboard to exit
+        if cv2.waitKey(25) & 0xFF == ord('q'):
+            break
+
+# Break the loop
+    else:
+	    break
+
+# When everything done, release
+# the video capture object
+cap.release()
+
+# Closes all the frames
+cv2.destroyAllWindows()
